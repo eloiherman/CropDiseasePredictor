@@ -58,17 +58,30 @@ n_features = X_train.shape[1]
 w = np.zeros(n_features, dtype=float)
 b = 0.0
 
-lr = 0.05
+lr = 0.01
 epochs = 2000
+lambda_ = 0.01
+
+#n1 = np.sum(y_train == 1)   # healthy
+#n0 = np.sum(y_train == 0)   # unhealthy
+#w1 = len(y_train) / (2 * n1)
+#w0 = len(y_train) / (2 * n0)
+
+train_losses = []
+val_losses = []
 
 for epoch in range(epochs): 
     z = X_train @ w + b
     y_prob = sigmoid(z)
 
-    #gradients
-    dw = (X_train.T @ (y_prob - y_train)) / len(y_train)
-    db = float(np.mean(y_prob - y_train))
+    #sample_weights = np.where(y_train == 1, w1, w0)
 
+    error = (y_prob - y_train)
+    #gradients
+    dw = (X_train.T @ (error)) / len(y_train)
+    db = np.sum(error) / len(y_train)
+
+    dw += lambda_ * w
     w -= lr * dw
     b -= lr *db 
 
@@ -98,3 +111,8 @@ print(f"FN={FN}  TN={TN}")
 
 print(np.mean(test_prob))
 print(np.min(test_prob), np.max(test_prob))
+
+print(w)
+print(b)
+
+print(np.mean(y_train))
