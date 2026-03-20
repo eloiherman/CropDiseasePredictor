@@ -1,0 +1,44 @@
+Category,Feature Name,Description,Data Type
+Image Features,High_Resolution_RGB,Availability of high-resolution RGB images (1 = Yes; 0 = No),Binary
+Image Features,Multispectral_Images,Presence of multispectral satellite imagery (1 = Yes; 0 = No),Binary
+Image Features,Thermal_Images,Usage of thermal imaging to analyze crop temperature variations (1 = Yes; 0 = No),Binary
+Image Features,Temporal_Images,Availability of time-series crop images (1 = Yes; 0 = No),Binary
+Image Features,Spatial_Resolution,Spatial resolution of the captured image (in meters),Float
+Image Features,GPS_Coordinates,Unique field location identifiers based on GPS mapping,Integer
+
+Environmental & Geospatial Features,Field_Boundaries,Categorized field boundary types (1; 2; 3), Categorical
+Environmental & Geospatial Features,Elevation_Data,Altitude of the agricultural plot (in meters),Float
+Environmental & Geospatial Features,Canopy_Coverage,Percentage of plant canopy coverage over soil,Float
+Environmental & Geospatial Features,NDVI,Normalized Difference Vegetation Index (0 to 1 scale),Float
+Environmental & Geospatial Features,SAVI,Soil-Adjusted Vegetation Index for correcting soil effects,Float
+Environmental & Geospatial Features,Chlorophyll_Content,Chlorophyll level measurement to assess crop health,Float
+Environmental & Geospatial Features,Leaf_Area_Index,Ratio of total leaf area per ground area unit,Float
+Environmental & Geospatial Features,Crop_Stress_Indicator,Stress level assessment (0 = No Stress; 100 = Extreme Stress),Integer
+
+Weather & Soil Features,Temperature,Temperature (°C) recorded at the field location,Float
+Weather & Soil Features,Humidity,Relative humidity (%) in the agricultural environment,Float
+Weather & Soil Features,Rainfall,Precipitation levels (mm) measured over a period,Float
+Weather & Soil Features,Wind_Speed,Wind speed (m/s) affecting plant structure,Float
+Weather & Soil Features,Soil_Moisture,Soil water retention percentage,Float
+Weather & Soil Features,Soil_pH,pH level of the soil sample collected,Float
+Weather & Soil Features,Organic_Matter,Organic carbon and nutrients present in soil (g/kg),Float
+
+Crop & Pest Features,Pest_Hotspots,Indicator for pest-affected areas (1 = Yes; 0 = No),Binary
+Crop & Pest Features,Weed_Coverage,Percentage of weed coverage in the field,Float
+Crop & Pest Features,Pest_Damage,Severity of pest damage on crops (0-100),Integer
+Crop & Pest Features,Crop_Growth_Stage,Growth phase of the crop (1 = Early; 2 = Vegetative; 3 = Flowering; 4 = Maturity),Categorical
+Crop & Pest Features,Expected_Yield,Predicted yield of the crop (kg/ha),Float
+Crop & Pest Features,Crop_Type,Type of cultivated crop (e.g. Wheat; Maize; Rice),Categorical
+
+Ground Truth & Prediction Features,Ground_Truth_Segmentation,Whether ground truth labels are available (1 = Yes; 0 = No),Binary
+Ground Truth & Prediction Features,Bounding_Boxes,Number of detected objects in a satellite image,Integer
+Ground Truth & Prediction Features,Water_Flow,Water availability for irrigation (L/s),Float
+Ground Truth & Prediction Features,Drainage_Features,Presence of drainage features (1 = Yes; 0 = No),Binary
+
+Target Variable,Crop_Health_Label,Target variable indicating crop condition (0 = Unhealthy; 1 = Healthy),Binary
+
+Dataset Info,Total Records,212019 samples,
+Dataset Info,Imbalanced Features,The dataset is intentionally unbalanced across various attributes (e.g. pest-affected areas are only present in ~15% of cases),
+Dataset Info,Crop Type Distribution,60% Wheat; 30% Maize; 10% Rice,
+Dataset Info,Label Imbalance,70% Healthy crops; 30% Unhealthy crops,
+Dataset Info,Diverse Geographies,Collected from different regions with varying climate conditions; ensuring generalizability,
