@@ -3,7 +3,7 @@ import numpy as np
 
 # Load data + select Wheat 
 
-df = pd.read_csv("data/agriculture_dataset.csv")
+df = pd.read_csv("agriculture_dataset.csv")
 #print(df.head())
 #print(df.columns)
 
@@ -116,3 +116,6 @@ print(w)
 print(b)
 
 print(np.mean(y_train))
+print(np.mean(y_test))
+
+print("F1 score:", 2 * (precision * recall) / (precision + recall) if (precision + recall) else 0.0)
