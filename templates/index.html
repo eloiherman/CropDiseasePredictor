@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+{% block title %}Index{% endblock %}
+
+{% block main %}
+
+    <h1>
+        Wheat Crop Health Prediction
+    </h1>
+    <br>
+    <h3>
+        <div>This app predicts whether a wheat crop is healthy or unhealthy using environmental and agricultural data.</div>
+        <br>
+
+        <div>
+            The model uses a Random Forest classifier trained on wheat data from an agricultural dataset. It analyzes features such as rainfall,
+            soil moisture, soil pH, temperature, chlorophyll content, vegetation indices, and other field conditions to predict crop health.
+        </div>
+        <br>
+
+        <div>
+            The data is first cleaned and preprocessed by removing invalid or missing values, applying log transformations to skewed features,
+            and standardizing numeric variables. The model is then tuned using cross-validation and hyperparameter search to improve performance
+            and reduce bias toward the majority class.
+        </div>
+        <br>
+
+        <div>
+            This project was built with Python and Flask for the backend, HTML/CSS for the frontend, and SQLite for storing user-related app data.
+            The machine learning pipeline uses pandas and NumPy for preprocessing and scikit-learn for training, evaluation, and prediction.
+        </div>
+    </h3>
+
+    <br><br>
+
+    <div class="text-center">
+        <a href="/try" class="btn btn-success btn-lg">
+            Try the Model
+        </a>
+    </div>
+
+{% endblock %}

@@ -1,0 +1,119 @@
+{% extends "layout.html" %}
+{% block title %} | Try the Model{% endblock %}
+
+{% block main %}
+
+<div class="mt-4 mb-5">
+    <h1 class="text-center mb-4">Try the Wheat Crop Health Model</h1>
+
+    <p class="text-center mb-4">
+        Enter the values below to predict whether the wheat crop is healthy or unhealthy.
+    </p>
+
+    {% if prediction %}
+        <div class="alert alert-info text-center mx-auto mt-4" style="max-width: 700px;">
+            <h4 class="mb-2">Prediction: {{ prediction }}</h4>
+            {% if confidence is not none %}
+                <p class="mb-0">Confidence: {{ confidence }}%</p>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    
+    <form action="/try" method="post" class="mx-auto" style="max-width: 1000px;">
+        <div class="row g-3">
+            
+            <div class="col-md-6">
+                <label for="Elevation_Data" class="form-label">Elevation Data</label>
+                <input type="number" step="any" class="form-control" name="Elevation_Data" id="Elevation_Data" required>
+            </div>
+
+            <div class="col-md-6">
+                <label for="Canopy_Coverage" class="form-label">Canopy Coverage</label>
+                <input type="number" step="any" class="form-control" name="Canopy_Coverage" id="Canopy_Coverage" required>
+            </div>
+
+            <div class="col-md-6">
+                <label for="NDVI" class="form-label">NDVI</label>
+                <input type="number" step="any" class="form-control" name="NDVI" id="NDVI" required>
+            </div>
+
+            <div class="col-md-6">
+                <label for="SAVI" class="form-label">SAVI</label>
+                <input type="number" step="any" class="form-control" name="SAVI" id="SAVI" required>
+            </div>
+
+            <div class="col-md-6">
+                <label for="Chlorophyll_Content" class="form-label">Chlorophyll Content</label>
+                <input type="number" step="any" class="form-control" name="Chlorophyll_Content" id="Chlorophyll_Content" required>
+            </div>
+
+            <div class="col-md-6">
+                <label for="Leaf_Area_Index" class="form-label">Leaf Area Index</label>
+                <input type="number" step="any" class="form-control" name="Leaf_Area_Index" id="Leaf_Area_Index" required>
+            </div>
+
+            <div class="col-md-6">
+                <label for="Temperature" class="form-label">Temperature</label>
+                <input type="number" step="any" class="form-control" name="Temperature" id="Temperature" required>
+            </div>
+
+            <div class="col-md-6">
+                <label for="Humidity" class="form-label">Humidity</label>
+                <input type="number" step="any" class="form-control" name="Humidity" id="Humidity" required>
+            </div>
+
+            <div class="col-md-6">
+                <label for="Rainfall" class="form-label">Rainfall</label>
+                <input type="number" step="any" class="form-control" name="Rainfall" id="Rainfall" required>
+            </div>
+
+            <div class="col-md-6">
+                <label for="Wind_Speed" class="form-label">Wind Speed</label>
+                <input type="number" step="any" class="form-control" name="Wind_Speed" id="Wind_Speed" required>
+            </div>
+
+            <div class="col-md-6">
+                <label for="Soil_Moisture" class="form-label">Soil Moisture</label>
+                <input type="number" step="any" class="form-control" name="Soil_Moisture" id="Soil_Moisture" required>
+            </div>
+
+            <div class="col-md-6">
+                <label for="Soil_pH" class="form-label">Soil pH</label>
+                <input type="number" step="any" class="form-control" name="Soil_pH" id="Soil_pH" required>
+            </div>
+
+            <div class="col-md-6">
+                <label for="Organic_Matter" class="form-label">Organic Matter</label>
+                <input type="number" step="any" class="form-control" name="Organic_Matter" id="Organic_Matter" required>
+            </div>
+
+            <div class="col-md-6">
+                <label for="Water_Flow" class="form-label">Water Flow</label>
+                <input type="number" step="any" class="form-control" name="Water_Flow" id="Water_Flow" required>
+            </div>
+
+            <div class="col-md-6">
+                <label for="Weed_Coverage" class="form-label">Weed Coverage</label>
+                <input type="number" step="any" class="form-control" name="Weed_Coverage" id="Weed_Coverage" required>
+            </div>
+
+            <div class="col-md-6">
+                <label for="Crop_Stress_Indicator" class="form-label">Crop Stress Indicator</label>
+                <input type="number" step="any" class="form-control" name="Crop_Stress_Indicator" id="Crop_Stress_Indicator" required>
+            </div>
+
+            <div class="col-md-6">
+                <label for="Pest_Damage" class="form-label">Pest Damage</label>
+                <input type="number" step="any" class="form-control" name="Pest_Damage" id="Pest_Damage" required>
+            </div>
+        </div>
+
+        <div class="text-center mt-4 mb-5">
+            <button type="submit" class="btn btn-success btn-lg">Predict Crop Health</button>
+        </div>
+    </form>
+
+</div>
+
+{% endblock %}

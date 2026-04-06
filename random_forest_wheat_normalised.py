@@ -44,7 +44,6 @@ df["Wind_Speed"] = np.log1p(df["Wind_Speed"])
 y = df["Crop_Health_Label"].astype(int).values
 
 features = [
-    "Spatial_Resolution",
     "Elevation_Data",
     "Canopy_Coverage",
     "NDVI",
@@ -106,7 +105,7 @@ X_test = scaler.transform(X_test)
 # -------------------------------
 
 param_grid = {
-    "n_estimators": [75, 100, 125, 150, 200],
+    "n_estimators": [75, 100, 125],
     "max_depth": [8, 10, 12, 15],
     "min_samples_split": [2, 5, 8, 10],
     "min_samples_leaf": [1, 2, 4],
