@@ -106,11 +106,11 @@ X_test = scaler.transform(X_test)
 # -------------------------------
 
 param_grid = {
-    "n_estimators": [50, 100, 200, 300],
-    "max_depth": [5, 10, 20, None],
-    "min_samples_split": [2, 5, 10, 20],
+    "n_estimators": [50, 75, 100, 150],
+    "max_depth": [3, 5, 7, 10],
+    "min_samples_split": [5, 10, 15, 20],
     "max_features": ["sqrt", "log2"],
-    "class_weight": ["balanced", None],
+    "class_weight": ["balanced"]
 }
 
 base_rf = RandomForestClassifier(random_state=42, n_jobs=-1)
