@@ -57,23 +57,6 @@ Pages
 / → Homepage
 /try → input the different informations and then outputs the prediction
 
-📂 Project Structure
-project/
-│
-├── app.py
-├── predict.py
-│
-├── wheat_rf_model.pkl
-├── wheat_scaler.pkl
-│
-├── templates/
-│   ├── layout.html
-│   ├── index.html
-│   ├── try.html
-│
-│
-└── requirements.txt
-
 ⚙️ Installation
 pip install -r requirements.txt
 flask run
