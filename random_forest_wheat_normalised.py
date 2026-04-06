@@ -6,6 +6,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+from sklearn.model_selection import train_test_split
 
 
 # -------------------------------
@@ -58,42 +59,33 @@ features = [
     "Soil_Moisture",
     "Soil_pH",
     "Organic_Matter",
-    "Pest_Hotspots",
     "Weed_Coverage",
     "Pest_Damage",
-    "Crop_Growth_Stage",
-    "Expected_Yield",
     "Water_Flow",
-    "Drainage_Features",
 ]
 
 X = df[features].astype(float).values
+y = df["Crop_Health_Label"].astype(int).values
 
-print(f"Using {len(features)} features on {len(X)} wheat samples")
-print("Class balance (overall y=1 rate):", round(np.mean(y), 4))
+print("Overall label counts:", np.bincount(y))
 
+X_temp, X_test, y_temp, y_test = train_test_split(
+    X, y, test_size=0.1, random_state=42, stratify=y
+)
 
+X_train, X_val, y_train, y_val = train_test_split(
+    X_temp, y_temp, test_size=0.1111, random_state=42, stratify=y_temp
+)
+
+print("Train counts:", np.bincount(y_train))
+print("Val counts:", np.bincount(y_val))
+print("Test counts:", np.bincount(y_test))
 # -------------------------------
 # 3. Train / Validation / Test split
 # -------------------------------
 
-np.random.seed(42)
-idx = np.random.permutation(len(X))
-
-split1 = int(0.8 * len(X))
-split2 = int(0.9 * len(X))
-
-train_idx = idx[:split1]
-val_idx = idx[split1:split2]
-test_idx = idx[split2:]
-
-X_train, y_train = X[train_idx], y[train_idx]
-X_val, y_val = X[val_idx], y[val_idx]
-X_test, y_test = X[test_idx], y[test_idx]
-
 print(f"Train: {len(X_train)} | Val: {len(X_val)} | Test: {len(X_test)}")
 print(f"Train class balance (y=1 rate): {np.mean(y_train):.4f}")
-
 
 # -------------------------------
 # 4. Standardize numeric features
@@ -127,7 +119,7 @@ search = RandomizedSearchCV(
     estimator=base_rf,
     param_distributions=param_grid,
     n_iter=20,
-    scoring="f1",
+    scoring="f1_macro",
     cv=3,
     verbose=2,
     random_state=42,
@@ -189,6 +181,13 @@ print("confusion matrix:")
 print(f"  TP={TP}  FP={FP}")
 print(f"  FN={FN}  TN={TN}")
 
+print("\nPrediction distribution:")
+print("Validation:", np.bincount(val_pred))
+print("Test:", np.bincount(test_pred))
+
+print("\nActual distribution:")
+print("Validation:", np.bincount(y_val))
+print("Test:", np.bincount(y_test))
 
 # -------------------------------
 # 8. Feature importance
