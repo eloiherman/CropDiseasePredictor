@@ -1,0 +1,274 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<section class="hero hero-compact">
+    <div class="container compact-hero__shell" data-reveal>
+        <div>
+            <p class="eyebrow">Prediction dashboard</p>
+            <h1>Check wheat crop health with the exact inputs used by your model.</h1>
+            <p class="hero-text">
+                Enter all 17 numerical inputs below. CropAI will reuse the saved scaler and model files from your backend,
+                then return the predicted class, confidence score, and visual summaries.
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="section prediction-section">
+    <div class="container predict-layout">
+        <aside class="predict-sidebar">
+            <article class="sidebar-card" data-reveal>
+                <p class="eyebrow">Model snapshot</p>
+                <h2>What this page does</h2>
+                <ul class="sidebar-list">
+                    <li>Collects the full input set expected by <code>predict.py</code>.</li>
+                    <li>Runs the saved scaler and Random Forest model without changing core prediction logic.</li>
+                    <li>Displays the wheat health class, confidence score, and charts from your submission.</li>
+                </ul>
+            </article>
+
+            <article class="sidebar-card" data-reveal>
+                <p class="eyebrow">Quick tips</p>
+                <h2>For the best demo</h2>
+                <ul class="sidebar-list">
+                    <li>Use realistic numeric values that match the dataset scale.</li>
+                    <li>Read the helper text under each input for quick guidance.</li>
+                    <li>Use one of the three demo presets if you want a fast presentation example.</li>
+                </ul>
+            </article>
+        </aside>
+
+        <div class="predict-main">
+            {% if error %}
+                <div class="notice notice-error" role="alert">{{ error }}</div>
+            {% endif %}
+
+            <form class="prediction-form" id="predictionForm" action="{{ url_for('try_model') }}" method="post">
+                <div class="form-toolbar" data-reveal>
+                    <div>
+                        <p class="eyebrow">Input form</p>
+                        <h2>Enter the wheat field measurements</h2>
+                    </div>
+                </div>
+
+                <section class="demo-presets" data-reveal aria-label="Demo preset values">
+                    {% for preset in demo_presets %}
+                        <button
+                            type="button"
+                            class="demo-preset"
+                            data-demo-preset='{{ preset["values"] | tojson }}'
+                        >
+                            <strong>Demo input #{{ loop.index }}</strong>
+                        </button>
+                    {% endfor %}
+                </section>
+
+                <div class="form-toolbar form-toolbar--subtle" data-reveal>
+                    <p class="form-footnote">Choose a preset above or fill the 17 inputs manually. All fields are required and must be numeric.</p>
+                </div>
+
+                {% for group in field_groups %}
+                    <section class="form-section-card" data-reveal>
+                        <div class="form-section-card__header">
+                            <p class="eyebrow">Input group {{ loop.index }}</p>
+                            <h3>{{ group.title }}</h3>
+                            <p>{{ group.description }}</p>
+                        </div>
+
+                        <div class="field-grid">
+                            {% for field in group.fields %}
+                                <label class="input-card" for="{{ field.name }}">
+                                    <span class="input-card__top">
+                                        <span class="input-label">{{ field.label }}</span>
+                                        <span class="input-chip">{{ field.short_label }}</span>
+                                    </span>
+                                    <input
+                                        type="number"
+                                        id="{{ field.name }}"
+                                        name="{{ field.name }}"
+                                        value="{{ form_values[field.name] }}"
+                                        placeholder="{{ field.placeholder }}"
+                                        min="{{ field.min }}"
+                                        max="{{ field.max }}"
+                                        step="{{ field.step }}"
+                                        inputmode="decimal"
+                                        data-demo-value="{{ field.placeholder }}"
+                                        required
+                                    >
+                                    <span class="input-help">{{ field.hint }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                    </section>
+                {% endfor %}
+
+                <div class="form-actions" data-reveal>
+                    <button type="submit" class="button button-primary button-large" data-submit-button>
+                        <span class="button-text">Predict crop health</span>
+                        <span class="button-spinner" aria-hidden="true"></span>
+                    </button>
+                </div>
+            </form>
+
+            <section class="results-area" id="resultPanel" data-has-result="{{ 'true' if result else 'false' }}">
+                {% if result %}
+                    <article class="result-hero result-hero--{{ result.theme }}" data-reveal aria-live="polite">
+                        <div class="result-hero__copy">
+                            <p class="eyebrow">{{ result.confidence_band }}</p>
+                            <h2>{{ result.heading }}</h2>
+                            <div class="result-pill">{{ result.prediction }}</div>
+                            <p>{{ result.explanation }}</p>
+                        </div>
+
+                        <div class="result-hero__aside">
+                            <article class="impact-stat">
+                                <span>Confidence</span>
+                                <strong>{{ result.confidence }}%</strong>
+                            </article>
+                            <article class="risk-chip risk-chip--{{ result.risk.theme }}">
+                                <span>Risk indicator</span>
+                                <strong>{{ result.risk.level }}</strong>
+                                <p>{{ result.risk.description }}</p>
+                            </article>
+                        </div>
+                    </article>
+
+                    <div class="results-dashboard">
+                        <article class="result-card result-card--chart" data-reveal>
+                            <div class="card-header">
+                                <p class="eyebrow">Confidence visual</p>
+                                <h3>Prediction confidence and uncertainty</h3>
+                            </div>
+
+                            <div class="chart-shell chart-shell--compact">
+                                <canvas id="confidenceChart" aria-label="Confidence doughnut chart"></canvas>
+                            </div>
+                            <p class="chart-caption">
+                                The doughnut shows the model confidence versus the remaining uncertainty for this prediction.
+                            </p>
+                        </article>
+
+                        <article class="result-card result-card--probability" data-reveal>
+                            <div class="card-header">
+                                <p class="eyebrow">Probability split</p>
+                                <h3>Healthy vs unhealthy probabilities</h3>
+                            </div>
+
+                            <div class="probability-stack">
+                                <div class="probability-row">
+                                    <div class="probability-row__top">
+                                        <span>Healthy wheat crop</span>
+                                        <strong>{{ result.probabilities.healthy }}%</strong>
+                                    </div>
+                                    <div class="probability-bar">
+                                        <span class="probability-bar__fill probability-bar__fill--healthy" style="width: {{ result.probabilities.healthy }}%;"></span>
+                                    </div>
+                                </div>
+
+                                <div class="probability-row">
+                                    <div class="probability-row__top">
+                                        <span>Unhealthy wheat crop</span>
+                                        <strong>{{ result.probabilities.unhealthy }}%</strong>
+                                    </div>
+                                    <div class="probability-bar">
+                                        <span class="probability-bar__fill probability-bar__fill--unhealthy" style="width: {{ result.probabilities.unhealthy }}%;"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="chart-caption">
+                                These bars show the class probabilities returned by the backend for the two possible crop-health outcomes.
+                            </p>
+                        </article>
+
+                        <article class="result-card result-card--chart" data-reveal>
+                            <div class="card-header">
+                                <p class="eyebrow">Feature summary</p>
+                                <h3>Health alignment across field categories</h3>
+                            </div>
+
+                            <div class="chart-shell">
+                                <canvas id="radarChart" aria-label="Radar chart for grouped crop features"></canvas>
+                            </div>
+                            <p class="chart-caption">
+                                This radar chart groups the submitted inputs into soil, weather, vegetation, stress, water, and field-condition signals. Higher scores mean the category looks more aligned with healthy wheat patterns.
+                            </p>
+                        </article>
+
+                        <article class="result-card result-card--chart" data-reveal>
+                            <div class="card-header">
+                                <p class="eyebrow">Explainability</p>
+                                <h3>Most influential feature drivers</h3>
+                            </div>
+
+                            <div class="chart-shell">
+                                <canvas id="importanceChart" aria-label="Feature importance chart"></canvas>
+                            </div>
+                            <p class="chart-caption">
+                                Driver strength combines the model's stored feature importance with how strongly each submitted value leans toward the healthy or unhealthy wheat reference.
+                            </p>
+                        </article>
+                    </div>
+
+                    <div class="results-insights">
+                        <article class="result-card" data-reveal>
+                            <div class="card-header">
+                                <p class="eyebrow">Why this prediction</p>
+                                <h3>{{ result.why_prediction.title }}</h3>
+                            </div>
+
+                            <ul class="reason-list">
+                                {% for reason in result.why_prediction.reasons %}
+                                    <li>{{ reason }}</li>
+                                {% endfor %}
+                            </ul>
+
+                            <div class="insight-callout insight-callout--{{ result.risk.theme }}">
+                                <span>What to do next</span>
+                                <p>{{ result.why_prediction.action }}</p>
+                            </div>
+                        </article>
+
+                        {% if result.reference_overview %}
+                            <article class="result-card" data-reveal>
+                                <div class="card-header">
+                                    <p class="eyebrow">Reference context</p>
+                                    <h3>What the dashboard compares against</h3>
+                                </div>
+
+                                <div class="context-grid">
+                                    <article class="context-stat">
+                                        <span>Wheat records</span>
+                                        <strong>{{ result.reference_overview.sample_count }}</strong>
+                                    </article>
+                                    <article class="context-stat">
+                                        <span>Healthy share</span>
+                                        <strong>{{ result.reference_overview.healthy_share }}%</strong>
+                                    </article>
+                                    <article class="context-stat">
+                                        <span>Unhealthy share</span>
+                                        <strong>{{ result.reference_overview.unhealthy_share }}%</strong>
+                                    </article>
+                                </div>
+
+                                <p class="chart-caption">
+                                    Explanation charts use healthy and unhealthy wheat averages derived from <code>{{ result.reference_overview.dataset_path }}</code> to give the user interpretable context.
+                                </p>
+                            </article>
+                        {% endif %}
+                    </div>
+
+                    <script type="application/json" id="dashboardPayload">{{ result.dashboard_payload | tojson }}</script>
+                {% else %}
+                    <article class="result-placeholder" data-reveal>
+                        <p class="eyebrow">Results</p>
+                        <h2>Your prediction summary will appear here.</h2>
+                        <p>
+                            Submit the form to see the prediction banner, confidence chart, probability split, grouped feature radar, feature-importance drivers, and a plain-language explanation of the result.
+                        </p>
+                    </article>
+                {% endif %}
+            </section>
+        </div>
+    </div>
+</section>
+{% endblock %}

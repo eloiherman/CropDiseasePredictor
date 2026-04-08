@@ -1,61 +1,64 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
-    <head>
-
-
-        <meta charset="utf-8">
-        <meta name="viewport" content="initial-scale=1, width=device-width">
-
-        <link rel="icon" type="image/png" href="/static/favicon-32x32.png">
-
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-
-        <title>Crop Disease Detector {% block title %}{% endblock %}</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link href="/static/styles.css" rel="stylesheet">
-
-    </head>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
-    <body>
-
-
-        {% if get_flashed_messages() %}
-            <header>
-                <div role="alert" style="
-                                         background-color: #f8d7da;
-                                         color: #721c24;
-                                         padding: 10px;
-                                         margin: 10px auto;
-                                         border-radius: 5px;
-                                         max-width: 600px;
-                                         text-align: center;
-                                         font-weight: bold;">
-                    {{ get_flashed_messages() | join(" ") }}
-                </div>
-            </header>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+        name="description"
+        content="CropAI predicts whether a wheat crop is healthy or unhealthy using environmental, vegetation, and soil measurements."
+    >
+    <title>
+        {% if page_name == "predict" %}
+            CropAI | Wheat Predictor
+        {% else %}
+            CropAI | Wheat Crop Health Prediction
         {% endif %}
+    </title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Sora:wght@400;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body class="page-{{ page_name|default('default') }}">
+    <div class="page-background" aria-hidden="true"></div>
 
-        <main class="container">
-            {% block main %}{% endblock %}
-        </main>
-        {% block scripts %}{% endblock %}
-    </body>
-    <footer style="
-                   background-color: #f1f1f1;
-                   color: #555;
-                   text-align: center;
-                   padding: 10px 0;
-                   position: fixed;
-                   bottom: 0;
-                   width: 100%;
-                   font-size: 14px;
-                  ">
-        &copy; 2026 Jean Eloi Lia Mohamed
+    <header class="site-header">
+        <div class="container nav-shell">
+            <a class="brand" href="{{ url_for('index') }}">
+                <span class="brand-mark">CropAI</span>
+                <span class="brand-copy">Wheat crop health predictor</span>
+            </a>
+
+            <nav class="site-nav" aria-label="Main navigation">
+                <a href="{{ url_for('index') }}#about">About</a>
+                <a href="{{ url_for('index') }}#how-it-works">How it works</a>
+                <a href="{{ url_for('try_model') }}" class="nav-button">Launch predictor</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-shell">
+            <div>
+                <strong>CropAI</strong>
+                <p>Presentation-ready Flask demo for wheat crop health prediction.</p>
+            </div>
+            <p>Built for a wheat-only machine learning workflow with Flask, scikit-learn, and saved model artifacts.</p>
+        </div>
     </footer>
 
+    {% if page_name == "predict" %}
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {% endif %}
+    <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+    {% block scripts %}{% endblock %}
+</body>
 </html>

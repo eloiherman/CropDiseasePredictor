@@ -1,17 +1,23 @@
-import pandas as pd
+from pathlib import Path
+
 import numpy as np
+import pandas as pd
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, precision_score, recall_score
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 
-# Load data + select Wheat 
 
-df = pd.read_csv("agriculture_dataset.csv")
-#print(df.head())
-#print(df.columns)
+BASE_DIR = Path(__file__).resolve().parent
+DATASET_PATH = BASE_DIR / "agriculture_dataset.csv"
 
-df = df[df["Crop_Type"].str.lower() == "wheat"].copy()
-
-y = df["Crop_Health_Label"].astype(int).values
-
-features = [ 
+FEATURES = [
+    "Elevation_Data",
+    "Canopy_Coverage",
+    "NDVI",
+    "SAVI",
+    "Chlorophyll_Content",
+    "Leaf_Area_Index",
     "Temperature",
     "Humidity",
     "Rainfall",
@@ -19,103 +25,127 @@ features = [
     "Soil_Moisture",
     "Soil_pH",
     "Organic_Matter",
-    "Elevation_Data"
+    "Water_Flow",
+    "Weed_Coverage",
+    "Crop_Stress_Indicator",
+    "Pest_Damage",
 ]
 
-X = df[features].astype(float).values
+LOG_TRANSFORM_FEATURES = [
+    "Canopy_Coverage",
+    "Chlorophyll_Content",
+    "Rainfall",
+    "Wind_Speed",
+    "Organic_Matter",
+]
 
-# Standardize features
 
-mu = X.mean(axis=0)
-sigma = X.std(axis=0)
-sigma[sigma == 0] = 1.0
-X = (X - mu) / sigma
+def load_wheat_data():
+    df = pd.read_csv(DATASET_PATH)
+    df = df[df["Crop_Type"].str.lower() == "wheat"].copy()
+    df = df[df["Expected_Yield"] >= 0].dropna()
 
-# Train / Test Split
+    X = df[FEATURES].astype(float).copy()
+    for feature in LOG_TRANSFORM_FEATURES:
+        X[feature] = np.log1p(X[feature].clip(lower=0))
 
-np.random.seed(42)
-idx = np.random.permutation(len(X))
-split = int(0.8 * len(X)) 
+    y = df["Crop_Health_Label"].astype(int).to_numpy()
+    return X, y
 
-train_idx = idx[:split]
-test_idx = idx[split:]
 
-X_train, y_train = X[train_idx], y[train_idx]
-X_test, y_test = X[test_idx], y[test_idx]
+def choose_threshold(y_true, probabilities):
+    best_score = None
+    best_snapshot = None
 
-# Regression 
+    for threshold in np.linspace(0.30, 0.70, 81):
+        predictions = (probabilities >= threshold).astype(int)
+        accuracy = accuracy_score(y_true, predictions)
+        recall = recall_score(y_true, predictions, zero_division=0)
+        f1 = f1_score(y_true, predictions, zero_division=0)
 
-def sigmoid(z: np.ndarray) -> np.ndarray:
-    z = np.clip(z, -500, 500)
-    return 1.0 / (1.0 + np.exp(-z))
+        # Favor the metrics requested by the project update:
+        # F1 first, then recall, then accuracy.
+        score = (0.50 * f1) + (0.30 * recall) + (0.20 * accuracy)
 
-def binary_cross_entropy(y_true: np.ndarray, y_prob: np.ndarray) -> float:
-    eps = 1e-12
-    y_prob = np.clip(y_prob, eps, 1-eps)
-    return float(-np.mean(y_true * np.log(y_prob) + (1 - y_true) * np.log(1 - y_prob)))
+        if best_score is None or score > best_score:
+            best_score = score
+            best_snapshot = {
+                "threshold": float(threshold),
+                "accuracy": float(accuracy),
+                "recall": float(recall),
+                "f1": float(f1),
+            }
 
-n_features = X_train.shape[1]
-w = np.zeros(n_features, dtype=float)
-b = 0.0
+    return best_snapshot
 
-lr = 0.01
-epochs = 2000
-lambda_ = 0.01
 
-#n1 = np.sum(y_train == 1)   # healthy
-#n0 = np.sum(y_train == 0)   # unhealthy
-#w1 = len(y_train) / (2 * n1)
-#w0 = len(y_train) / (2 * n0)
+def print_metrics(title, y_true, predictions):
+    accuracy = accuracy_score(y_true, predictions)
+    precision = precision_score(y_true, predictions, zero_division=0)
+    recall = recall_score(y_true, predictions, zero_division=0)
+    f1 = f1_score(y_true, predictions, zero_division=0)
+    cm = confusion_matrix(y_true, predictions)
 
-train_losses = []
-val_losses = []
+    tn, fp, fn, tp = cm.ravel()
 
-for epoch in range(epochs): 
-    z = X_train @ w + b
-    y_prob = sigmoid(z)
+    print(f"\n--- {title} ---")
+    print("accuracy :", accuracy)
+    print("precision:", precision)
+    print("recall   :", recall)
+    print("F1 score :", f1)
+    print("confusion matrix:")
+    print(f"TP={tp}  FP={fp}")
+    print(f"FN={fn}  TN={tn}")
 
-    #sample_weights = np.where(y_train == 1, w1, w0)
 
-    error = (y_prob - y_train)
-    #gradients
-    dw = (X_train.T @ (error)) / len(y_train)
-    db = np.sum(error) / len(y_train)
+def main():
+    X, y = load_wheat_data()
 
-    dw += lambda_ * w
-    w -= lr * dw
-    b -= lr *db 
+    X_temp, X_test, y_temp, y_test = train_test_split(
+        X,
+        y,
+        test_size=0.2,
+        random_state=42,
+        stratify=y,
+    )
+    X_train, X_val, y_train, y_val = train_test_split(
+        X_temp,
+        y_temp,
+        test_size=0.25,
+        random_state=42,
+        stratify=y_temp,
+    )
 
-# Evaluate the results 
-test_prob = sigmoid(X_test @ w + b)
-test_pred = (test_prob >= 0.7).astype(int)
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_val_scaled = scaler.transform(X_val)
+    X_test_scaled = scaler.transform(X_test)
 
-accuracy = float(np.mean(test_pred == y_test))
+    model = LogisticRegression(
+        max_iter=4000,
+        random_state=42,
+    )
+    model.fit(X_train_scaled, y_train)
 
-# Precision / Recall 
-TP = int(np.sum((test_pred == 1) & (y_test == 1)))
-FP = int(np.sum((test_pred == 1) & (y_test == 0)))
-TN = int(np.sum((test_pred == 0) & (y_test == 0)))
-FN = int(np.sum((test_pred == 0) & (y_test == 1)))
+    val_probabilities = model.predict_proba(X_val_scaled)[:, 1]
+    best_threshold = choose_threshold(y_val, val_probabilities)
 
-precision = TP / (TP + FP) if (TP + FP) else 0.0
-recall = TP / (TP + FN) if (TP + FN) else 0.0
+    val_predictions = (val_probabilities >= best_threshold["threshold"]).astype(int)
+    test_probabilities = model.predict_proba(X_test_scaled)[:, 1]
+    test_predictions = (test_probabilities >= best_threshold["threshold"]).astype(int)
 
-print("\n--- Wheat results  ---")
-print("n_samples:", len(X))
-print("accuracy :", accuracy)
-print("precision:", precision)
-print("recall   :", recall)
-print("confusion matrix:")
-print(f"TP={TP}  FP={FP}")
-print(f"FN={FN}  TN={TN}")
+    print("\n--- Wheat Training Setup ---")
+    print("n_samples :", len(X))
+    print("n_features:", len(FEATURES))
+    print("train size:", len(X_train))
+    print("val size  :", len(X_val))
+    print("test size :", len(X_test))
+    print("positive class share:", float(np.mean(y)))
+    print("selected threshold  :", round(best_threshold["threshold"], 3))
 
-print(np.mean(test_prob))
-print(np.min(test_prob), np.max(test_prob))
+    print_metrics("Validation Results", y_val, val_predictions)
+    print_metrics("Test Results", y_test, test_predictions)
 
-print(w)
-print(b)
 
-print(np.mean(y_train))
-print(np.mean(y_test))
-
-print("F1 score:", 2 * (precision * recall) / (precision + recall) if (precision + recall) else 0.0)
+if __name__ == "__main__":
+    main()

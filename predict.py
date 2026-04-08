@@ -1,11 +1,51 @@
 import pickle
 import numpy as np
+from pathlib import Path
 
-with open("wheat_rf_model.pkl", "rb") as f:
+BASE_DIR = Path(__file__).resolve().parent
+MODEL_FEATURE_ORDER = [
+    "Elevation_Data",
+    "Canopy_Coverage",
+    "NDVI",
+    "SAVI",
+    "Chlorophyll_Content",
+    "Leaf_Area_Index",
+    "Crop_Stress_Indicator",
+    "Temperature",
+    "Humidity",
+    "Rainfall",
+    "Wind_Speed",
+    "Soil_Moisture",
+    "Soil_pH",
+    "Organic_Matter",
+    "Weed_Coverage",
+    "Pest_Damage",
+    "Water_Flow",
+]
+
+with (BASE_DIR / "wheat_rf_model.pkl").open("rb") as f:
     model = pickle.load(f)
 
-with open("wheat_scaler.pkl", "rb") as f:
+with (BASE_DIR / "wheat_scaler.pkl").open("rb") as f:
     scaler = pickle.load(f)
+
+if hasattr(model, "n_jobs"):
+    model.n_jobs = 1
+
+
+def get_feature_importance_map():
+    if not hasattr(model, "feature_importances_"):
+        return {}
+    return {
+        feature_name: float(importance)
+        for feature_name, importance in zip(MODEL_FEATURE_ORDER, model.feature_importances_)
+    }
+
+
+def get_model_class_count():
+    classes = getattr(model, "classes_", None)
+    return int(len(classes)) if classes is not None else 0
+
 
 def make_prediction(form):
     features = [
@@ -40,7 +80,20 @@ def make_prediction(form):
     pred = model.predict(X_scaled)[0]
     probs = model.predict_proba(X_scaled)[0]
 
+    class_probability_map = {
+        int(class_label): round(float(probability) * 100, 2)
+        for class_label, probability in zip(model.classes_, probs)
+    }
+    healthy_probability = class_probability_map.get(1, 0.0)
+    unhealthy_probability = class_probability_map.get(0, 0.0)
     prediction = "Healthy wheat crop" if pred == 1 else "Unhealthy wheat crop"
-    confidence = round(float(np.max(probs)) * 100, 2)
+    confidence = max(healthy_probability, unhealthy_probability)
 
-    return prediction, confidence
+    return {
+        "prediction": prediction,
+        "confidence": confidence,
+        "probabilities": {
+            "healthy": healthy_probability,
+            "unhealthy": unhealthy_probability,
+        },
+    }

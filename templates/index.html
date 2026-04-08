@@ -1,41 +1,105 @@
 {% extends "layout.html" %}
-{% block title %}Index{% endblock %}
 
-{% block main %}
+{% block content %}
+<section class="hero hero-home">
+    <div class="container hero-grid">
+        <div class="hero-copy" data-reveal>
+            <p class="eyebrow">Presentation-ready wheat health prediction</p>
+            <h1>Turn field measurements into a clear crop health decision.</h1>
+            <p class="hero-text">
+                CropAI is a Flask-based machine learning website that predicts whether a wheat crop is healthy or unhealthy using
+                environmental, vegetation, and soil conditions from your model pipeline.
+            </p>
 
-    <h1>
-        Wheat Crop Health Prediction
-    </h1>
-    <br>
-    <h3>
-        <div>This app predicts whether a wheat crop is healthy or unhealthy using environmental and agricultural data.</div>
-        <br>
+            <div class="hero-actions">
+                <a href="{{ url_for('try_model') }}" class="button button-primary">Open prediction dashboard</a>
+                <a href="#about" class="button button-secondary">Explore the project</a>
+            </div>
 
-        <div>
-            The model uses a Random Forest classifier trained on wheat data from an agricultural dataset. It analyzes features such as rainfall,
-            soil moisture, soil pH, temperature, chlorophyll content, vegetation indices, and other field conditions to predict crop health.
+            <div class="metric-grid">
+                {% for item in highlights %}
+                    <article class="metric-card">
+                        <strong>{{ item.value }}</strong>
+                        <span>{{ item.label }}</span>
+                    </article>
+                {% endfor %}
+            </div>
         </div>
-        <br>
 
-        <div>
-            The data is first cleaned and preprocessed by removing invalid or missing values, applying log transformations to skewed features,
-            and standardizing numeric variables. The model is then tuned using cross-validation and hyperparameter search to improve performance
-            and reduce bias toward the majority class.
+        <div class="hero-visual" data-reveal>
+            <div class="hero-visual__panel">
+                <div class="hero-badge">Computed from local project files</div>
+                <div class="hero-visual__headline">
+                    <span>Project snapshot</span>
+                    <strong>{{ home_snapshot.reference_count }} wheat records</strong>
+                </div>
+                <div class="hero-visual__cards">
+                    <article>
+                        <h2>{{ home_snapshot.input_count }} model inputs</h2>
+                        <p>The prediction form and backend both use the same 17 feature inputs from the local project code.</p>
+                    </article>
+                    <article>
+                        <h2>{{ home_snapshot.class_count }} output classes</h2>
+                        <p>The saved model returns one of two classes: healthy wheat crop or unhealthy wheat crop.</p>
+                    </article>
+                </div>
+            </div>
         </div>
-        <br>
-
-        <div>
-            This project was built with Python and Flask for the backend and HTML/CSS for the fronten.
-            The machine learning pipeline uses pandas and NumPy for preprocessing and scikit-learn for training, evaluation, and prediction.
-        </div>
-    </h3>
-
-    <br><br>
-
-    <div class="text-center">
-        <a href="/try" class="btn btn-success btn-lg">
-            Try the Model
-        </a>
     </div>
+</section>
 
+<section class="section section-surface" id="about">
+    <div class="container section-grid">
+        <div class="section-heading" data-reveal>
+            <p class="eyebrow">About the model</p>
+            <h2>Built to explain the full ML pipeline in a simple demo flow.</h2>
+            <p>
+                The project uses a saved Random Forest classifier and scaler trained on wheat crop data. The site focuses on a polished,
+                school-ready experience while keeping the model logic intact and easy to explain.
+            </p>
+        </div>
+
+        <div class="info-grid">
+            <article class="info-card" data-reveal>
+                <h3>What CropAI measures</h3>
+                <p>CropAI collects {{ home_snapshot.input_count }} inputs covering canopy health, vegetation indices, weather, moisture, soil properties, and stress signals.</p>
+            </article>
+            <article class="info-card" data-reveal>
+                <h3>What the result means</h3>
+                <p>The output compares the submitted values to patterns the model learned and returns a predicted class with a confidence percentage.</p>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="how-it-works">
+    <div class="container">
+        <div class="section-heading centered" data-reveal>
+            <p class="eyebrow">How it works</p>
+            <h2>From field inputs to prediction in three quick steps.</h2>
+        </div>
+
+        <div class="steps-grid">
+            {% for item in how_it_works %}
+                <article class="step-card" data-reveal>
+                    <span class="step-number">0{{ loop.index }}</span>
+                    <p>{{ item }}</p>
+                </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="cta-panel" data-reveal>
+            <div>
+                <p class="eyebrow">Ready to demo it?</p>
+                <h2>Launch the CropAI predictor and test a wheat field profile.</h2>
+                <p>Use realistic field measurements, review the confidence score, and present the result in a cleaner, more professional interface.</p>
+            </div>
+            <a href="{{ url_for('try_model') }}" class="button button-primary">Start a prediction</a>
+        </div>
+    </div>
+</section>
 {% endblock %}

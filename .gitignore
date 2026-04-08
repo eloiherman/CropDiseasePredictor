@@ -1,9 +1,14 @@
 .venv/
+venv/
 
-data/ 
+data/
 
 __pycache__/
-*.__pycache__
+*.pyc
+*.pyo
+
+.idea/
+.vscode/
 
 .DS_Store
 Thumbs.db
