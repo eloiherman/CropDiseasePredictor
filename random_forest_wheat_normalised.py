@@ -13,7 +13,7 @@ from sklearn.model_selection import train_test_split
 # 1. Load and preprocess data
 # -------------------------------
 
-df = pd.read_csv("data/agriculture_dataset.csv")
+df = pd.read_csv("src/agriculture_dataset.csv")
 
 # Save basic stats if you want
 df.describe().to_csv("features_described.csv")

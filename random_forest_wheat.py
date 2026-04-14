@@ -6,7 +6,7 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 
 # Load data + select Wheat 
 
-df = pd.read_csv("data/agriculture_dataset.csv")
+df = pd.read_csv("src/agriculture_dataset.csv")
 df = df[df["Crop_Type"].str.lower() == "wheat"].copy()
 
 y = df["Crop_Health_Label"].astype(int).values
